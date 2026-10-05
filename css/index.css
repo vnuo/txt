@@ -1,0 +1,112 @@
+h1 {
+    font-size: 56px;
+    color: rgb(157, 110, 51);
+}
+
+.title, .txt_div {
+    margin: auto;
+    text-align: center;
+    border: none;
+}
+
+.txt_div {
+    width: 450px;
+    height: 345px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, .2) !important;
+    border: rgba(157, 110, 51, .05) !important;
+    border-radius: 10px;
+}
+
+@font-face {
+    font-family: 'VaeFont';
+    src: url('../vae.ttf') format('truetype');
+}
+
+.txt_input {
+    width: 100%;
+    height: 95%;
+    color: rgb(157, 110, 51);
+    text-align: justify;
+    font-size: 32px;
+    vertical-align: middle;
+    font-weight: bolder;
+    border: none;
+    font-family: 'VaeFont', sans-serif;
+    outline: none;
+    background: none;
+    text-decoration: none;
+    max-lines: 6;
+    resize: none;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'VaeFont', sans-serif;
+    background: url('../bg.png') center/cover no-repeat fixed;
+}
+
+/* 音乐按钮 + 歌名 外层容器：固定在右上角，纵向排列 */
+.music-wrap {
+    position: fixed;
+    top: 25px;
+    right: 32px;
+    display: flex;
+    flex-direction: column; /* 音符在上，歌名在下 */
+    align-items: center; /* 水平居中对齐 */
+    gap: 6px; /* 按钮和歌名间距 */
+    z-index: 999;
+    user-select: none;
+}
+
+/* 音乐按钮样式 */
+#music-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    color: rgb(157, 110, 51);
+    background: rgba(255, 255, 255, .35);
+    backdrop-filter: blur(4px);
+    transition: transform .2s, background .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+#music-btn svg {
+    display: block;
+}
+
+#music-btn:hover {
+    background: rgba(255, 255, 255, .55);
+    transform: scale(1.08);
+}
+
+#music-btn.playing {
+    animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 歌名：加粗，位于音符下方 */
+.song-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: rgb(157, 110, 51);
+    font-family: 'VaeFont', sans-serif;
+    letter-spacing: 1px;
+    text-align: center;
+    white-space: nowrap;
+    transition: opacity .3s;
+}
