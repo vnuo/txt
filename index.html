@@ -5,20 +5,81 @@
     <title>TXT</title>
     <link rel="icon" href="./favicon.ico">
     <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/playlist.css">
+    <link rel="stylesheet" href="./css/txt.css">
+    <link rel="stylesheet" href="./css/music-wrap.css">
     <script src="./js/http_cdn.jsdelivr.net_npm_vue@2_dist_vue.js"></script>
+    <!-- 预加载字体 -->
+    <link rel="preload" href="./vae.woff2" as="font" type="font/ttf" crossorigin>
+    <script>
+        document.documentElement.style.opacity = '0'
+        setTimeout(() => { document.documentElement.style.opacity = '1' }, 2000)  // 兜底
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.style.transition = 'opacity .2s'
+                document.documentElement.style.opacity = '1'
+            })
+        } else {
+            document.documentElement.style.opacity = '1'
+        }
+    </script>
 </head>
 <body>
+<div class="bg-layer"></div>
 <div id="app">
+    <!-- 左侧: 歌单 -->
+    <div class="playlist-wrap">
+        <div class="playlist-title">歌单</div>
+        <ul class="playlist-list">
+            <li v-for="(song, index) in playlist"
+                :key="index"
+                :class="{ active: curIndex === index }"
+                @click="playSong(index)">
+                <!-- 当前正在播放: 动态均衡器图标 -->
+                <svg v-if="curIndex === index && isPlaying"
+                     class="li-icon eq-icon" viewBox="0 0 24 24" width="20" height="20"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="6" y1="10" x2="6" y2="14"/>
+                    <line x1="12" y1="6" x2="12" y2="18"/>
+                    <line x1="18" y1="9" x2="18" y2="15"/>
+                </svg>
+
+                <!-- 当前但暂停: 音符 -->
+                <svg v-else
+                     class="li-icon" viewBox="0 0 24 24" width="20" height="20"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18V5l12-2v13"/>
+                    <circle cx="6" cy="18" r="3"/>
+                    <circle cx="18" cy="16" r="3"/>
+                </svg>
+                <span class="song-text">{{ getSongName(song) }}</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- 中间: 备忘录内容 -->
     <div class="title">
-        <h1>备忘录</h1>
+        <h1>
+            <span class="memo-icon">
+                <svg viewBox="0 0 24 24" width="56" height="56"
+                     fill="none" stroke="currentColor" stroke-width="1.6"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path class="quill" d="M19 3 C12 4 7 9 6 15 L4 20 L6 18 C13 18 19 13 19 3 Z"/>
+                    <line class="quill" x1="4" y1="20" x2="14" y2="9"/>
+                    <path class="ink" d="M2 22 Q6 20 10 22 T18 22"/>
+                </svg>
+            </span>
+            备忘录
+        </h1>
     </div>
     <div class="txt_div">
         <label>
-            <textarea v-model="txt" @input="changeTXT" class="txt_input"></textarea>
+            <textarea v-model="txt" class="txt_input"></textarea>
         </label>
     </div>
 
-    <!-- 音乐按钮 + 歌名 -->
+    <!-- 右侧: 音乐按钮 + 歌名 -->
     <div class="music-wrap">
         <button id="music-btn" @click="toggleMusic" :class="{ playing: isPlaying }">
             <!-- 播放中: 线条音符 -->
@@ -39,10 +100,25 @@
                 <line x1="4" y1="4" x2="20" y2="20"/>
             </svg>
         </button>
-
         <!-- 歌名: 在音符下边 -->
         <div class="song-name" :class="{ paused: !isPlaying }">
             {{ getSongName(playlist[curIndex]) }}
+            <!-- 进度条 -->
+            <div class="progress-wrap">
+                <span class="time cur">{{ formatTime(currentTime) }}</span>
+
+                <div class="progress-bar"
+                     ref="bar"
+                     @mousedown="onBarDown"
+                     @click="onBarClick">
+                    <!-- fill 用满宽, 靠 transform 缩放 -->
+                    <div class="progress-fill" :style="{ transform: 'scaleX(' + (progressPercent / 100) + ')' }"></div>
+                    <!-- thumb 独立定位, 绝对不受 scaleX 影响 -->
+                    <div class="progress-thumb" :style="{ left: progressPercent + '%' }"></div>
+                </div>
+
+                <span class="time total">{{ formatTime(duration) }}</span>
+            </div>
         </div>
     </div>
 </div>
@@ -58,21 +134,47 @@
                 bgm: null,
                 // 歌单
                 playlist: [
+                    './bgm/雨夜的心跳.mp3',
+                    './bgm/时光教会我的.mp3',
+                    './bgm/三吋日光.mp3',
+                    './bgm/花开忘忧.mp3',
                     './bgm/赐我.mp3',
                     './bgm/不悟.mp3',
-                    './bgm/不坠.mp3'
+                    './bgm/不坠.mp3',
+                    './bgm/不要慌不要慌.mp3',
+                    './bgm/忽略不计.mp3'
                 ],
-                curIndex: 0
+                curIndex: 0,
+                // 进度条
+                currentTime: 0,
+                duration: 0,
+                isDragging: false,
+                // 节流
+                _lastTick: 0
+            }
+        },
+        computed: {
+            progressPercent() {
+                if (!this.duration) return 0
+                return Math.min(100, (this.currentTime / this.duration) * 100)
             }
         },
         created() {
             this.init()
             this.bgm = new Audio(this.playlist[this.curIndex])
             this.bgm.loop = false
+            this.bgm.preload = 'metadata'
             this.bgm.addEventListener('ended', this.playNext)
+
+            // 音乐播放进度监听
+            this.bgm.addEventListener('timeupdate', this.onTimeUpdate)
+            this.bgm.addEventListener('loadedmetadata', this.onLoadedMeta)
+            this.bgm.addEventListener('durationchange', this.onLoadedMeta)
+
             // 注册键盘监听
             window.addEventListener('keydown', this.handleKeydown)
-            // 关闭 or 刷新页面的监听
+
+            // 注册关闭 or 刷新页面的监听
             window.addEventListener('beforeunload', this.handleBeforeUnload)
         },
         // 移除监听
@@ -83,11 +185,32 @@
         methods: {
             init() {
                 this.txt = localStorage.getItem('txt') || ''
-                this.curIndex = localStorage.getItem('curIndex') || 0
+                let savedIndex = Number(localStorage.getItem('curIndex'))
+                if (!Number.isInteger(savedIndex) || savedIndex < 0 || savedIndex >= this.playlist.length) {
+                    savedIndex = 0
+                }
+                this.curIndex = savedIndex
             },
-            changeTXT() {
-                localStorage.setItem('txt', this.txt)
+
+            // 点击歌单切歌
+            playSong(index) {
+                if (this.curIndex === index && this.isPlaying) return // 正在播这首就不重复操作
+                this.curIndex = index
+                if (this.bgm) {
+                    this.currentTime = 0
+                    this.duration = 0
+                    // TODO bgm: { src: '' } 是对象
+                    this.bgm.src = this.playlist[this.curIndex]
+                    this.bgm.play().then(() => {
+                        this.isPlaying = true
+                        console.log('正在播放: ' + this.getSongName(this.playlist[this.curIndex]) + '...')
+                    }).catch(err => {
+                        console.warn('切歌失败: ', err)
+                        this.isPlaying = false
+                    })
+                }
             },
+
             // 开始 | 暂停播放
             toggleMusic() {
                 if (!this.bgm) return
@@ -106,17 +229,64 @@
             },
             // 切下一首
             playNext() {
-                this.curIndex = (this.curIndex + 1) % this.playlist.length
-                // TODO bgm: { src: '' } 是对象
-                this.bgm.src = this.playlist[this.curIndex]
-                this.bgm.play().then(() => {
-                    this.isPlaying = true
-                    console.log('正在播放: ' + this.getSongName(this.playlist[this.curIndex]) + '...')
-                }).catch(err => {
-                    console.warn('切歌失败: ', err)
-                    this.isPlaying = false
-                })
+                const nextIndex = (this.curIndex + 1) % this.playlist.length
+                this.playSong(nextIndex)
             },
+
+            // 进度条相关
+            onTimeUpdate() {
+                if (this.isDragging) return
+                const now = performance.now();
+                // 200ms 才更新一次进度条，肉眼完全看不出差别，但省了很多性能
+                if (now - this._lastTick < 200) return;
+                this._lastTick = now;
+                this.currentTime = this.bgm.currentTime;
+            },
+
+            onLoadedMeta() {
+                this.duration = this.bgm.duration || 0
+            },
+
+            formatTime(sec) {
+                if (!sec || !isFinite(sec)) return '00:00'
+                const m = Math.floor(sec / 60)
+                const s = Math.floor(sec % 60)
+                return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
+            },
+
+            calcPercent(clientX) {
+                const rect = this.$refs.bar.getBoundingClientRect()
+                let p = (clientX - rect.left) / rect.width
+                return Math.max(0, Math.min(1, p))
+            },
+
+            onBarClick(e) {
+                if (!this.bgm || !this.duration) return
+                const p = this.calcPercent(e.clientX)
+                this.bgm.currentTime = p * this.duration
+                this.currentTime = this.bgm.currentTime
+            },
+
+            onBarDown(e) {
+                if (!this.bgm || !this.duration) return
+                this.isDragging = true
+
+                const move = (ev) => {
+                    const p = this.calcPercent(ev.clientX)
+                    this.currentTime = p * this.duration
+                }
+                const up = (ev) => {
+                    const p = this.calcPercent(ev.clientX)
+                    this.bgm.currentTime = p * this.duration
+                    this.currentTime = this.bgm.currentTime
+                    this.isDragging = false
+                    window.removeEventListener('mousemove', move)
+                    window.removeEventListener('mouseup', up)
+                }
+                window.addEventListener('mousemove', move)
+                window.addEventListener('mouseup', up)
+            },
+
             // 键盘事件处理
             handleKeydown(e) {
                 // Ctrl + Alt + S 开始 | 暂停播放
@@ -130,16 +300,22 @@
                     this.playNext()
                 }
             },
+
             // 关闭 or 刷新页面, 缓存当前播放歌曲索引
             handleBeforeUnload() {
+                localStorage.setItem('txt', this.txt)
                 if (this.bgm) {
                     this.bgm.pause()
                     this.bgm.removeEventListener('ended', this.playNext)
+                    this.bgm.removeEventListener('timeupdate', this.onTimeUpdate)
+                    this.bgm.removeEventListener('loadedmetadata', this.onLoadedMeta)
+                    this.bgm.removeEventListener('durationchange', this.onLoadedMeta)
                     this.bgm = null
                 }
                 localStorage.setItem('curIndex', this.curIndex)
             },
-            // 提取歌名
+
+            // 提取歌名工具方法
             getSongName(src) {
                 return src.match(/([^/]+)\.\w+$/)[1]
             }

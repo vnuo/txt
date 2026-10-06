@@ -1,0 +1,91 @@
+.title h1 {
+    font-size: 56px;
+    color: rgb(157, 110, 51);
+
+    /* 新增：白色柔光，让文字浮起来 */
+    text-shadow: 0 1px 3px rgba(255, 255, 255, .2),
+    0 0 12px rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+
+.title, .txt_div {
+    margin: auto;
+    text-align: center;
+    border: none;
+}
+
+.txt_div {
+    width: 450px;
+    height: 345px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, .2) !important;
+    border: rgba(157, 110, 51, .05) !important;
+    border-radius: 10px;
+}
+
+.txt_input {
+    width: 100%;
+    height: 95%;
+    color: rgb(157, 110, 51);
+    /* 新增：白色柔光，让文字浮起来 */
+    text-shadow: 0 1px 3px rgba(255, 255, 255, .2),
+    0 0 6px rgba(255, 255, 255, 0.9);
+    text-align: justify;
+    font-size: 32px;
+    vertical-align: middle;
+    font-weight: bolder;
+    border: none;
+    font-family: 'VaeFont', sans-serif;
+    outline: none;
+    background: none;
+    text-decoration: none;
+    max-lines: 6;
+    resize: none;
+    overflow: hidden;
+}
+
+
+/* 图标 */
+.memo-icon {
+    display: flex;            /* 改为 flex，让内部的 SVG 也参与对齐 */
+    align-items: center;
+    justify-content: center;
+    color: rgb(157, 110, 51);
+    margin-top: -4px;         /* 微调：抵消 SVG 底部的空白，视觉上与文字对齐 */
+}
+
+.memo-icon svg {
+    overflow: visible;
+    animation: memo-float 5.5s ease-in-out infinite;
+    transform-origin: 50% 60%;
+    vertical-align: middle;   /* 新增：强制 SVG 垂直居中 */
+}
+
+
+.memo-icon .ink {
+    stroke-dasharray: 26;
+    stroke-dashoffset: 26;
+    animation: ink-write 5.5s ease-in-out infinite;
+}
+
+.memo-icon svg, .memo-icon .ink {
+    will-change: transform, opacity;
+}
+
+/* 调整动画: 让上下浮动更对称, 不再整体偏上 */
+@keyframes memo-float {
+    0%, 100% { transform: translateY(4px)  rotate(0deg);  }  /* 起始位置略微下移 */
+    50%      { transform: translateY(-1px) rotate(-4deg); }  /* 最高点略微上移 */
+}
+
+@keyframes ink-write {
+    0%, 55%  { stroke-dashoffset: 26; opacity: 0; }
+    60%      { opacity: 1; }
+    95%      { stroke-dashoffset: 0;  opacity: 1; }
+    100%     { stroke-dashoffset: 0;  opacity: 0; }
+}
+
+

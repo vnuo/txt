@@ -1,0 +1,140 @@
+/* 音乐按钮 + 歌名 + 进度条, 外层容器: 固定在右上角，纵向排列 */
+.music-wrap {
+    position: fixed;
+    top: 32px;
+    right: 32px;
+    display: flex;
+    flex-direction: column; /* 音符在上，歌名在下 */
+    align-items: center; /* 水平居中对齐 */
+    gap: 6px; /* 按钮和歌名间距 */
+    z-index: 999;
+    user-select: none;
+}
+
+/* 音乐按钮样式 */
+#music-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    color: rgb(157, 110, 51);
+    background: rgba(255, 255, 255, .3);
+    transition: transform .2s, background .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+#music-btn svg {
+    display: block;
+}
+
+#music-btn:hover {
+    background: rgba(255, 255, 255, .3);
+    transform: scale(1.08);
+}
+
+#music-btn.playing {
+    animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 歌名: 加粗, 位于音符下方 */
+.song-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: rgb(157, 110, 51);
+    font-family: 'VaeFont', sans-serif;
+    letter-spacing: 1px;
+    text-align: center;
+    white-space: nowrap;
+    transition: opacity .3s;
+    /* 新增：白色柔光，让文字浮起来 */
+    text-shadow: 0 1px 3px rgba(255, 255, 255, .2),
+    0 0 6px rgba(255, 255, 255, 0.3);
+}
+
+
+/* 歌曲进度条 */
+.progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    width: 240px;
+    color: rgb(157, 110, 51);
+    font-family: 'VaeFont', sans-serif;
+    font-size: 20px;
+    user-select: none;
+    font-weight: bolder;
+}
+
+.time {
+    flex-shrink: 0;
+    opacity: .75;
+    width: 40px;
+    text-align: center;
+}
+
+.progress-bar {
+    position: relative;
+    flex: 1;
+    height: 16px;                          /* 点击热区 */
+    padding: 6px 0;                        /* 上下各留 6px */
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.progress-bar::before {                    /* 视觉上的细线 */
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 4px;
+    margin-top: -2px;
+    background: rgba(157, 110, 51, .3);
+    border-radius: 2px;
+}
+
+.progress-fill {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;                 /* 宽度永远是满的 */
+    height: 4px;
+    margin-top: -2px;
+    background: rgb(157, 110, 51);
+    border-radius: 2px;
+    pointer-events: none;
+    transform-origin: left center; /* 从左往右伸长 */
+}
+
+.progress-thumb {
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    margin-left: -5px; /* 圆心对齐 left */
+    border-radius: 50%;
+    background: rgb(157, 110, 51);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, .6);
+    opacity: 0;
+    transition: opacity .2s;
+    pointer-events: none;
+}
+
+.progress-bar:hover .progress-thumb {
+    opacity: 1;
+}
