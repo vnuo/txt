@@ -168,6 +168,8 @@
                 currentTime: 0,
                 duration: 0,
                 isDragging: false,
+                // 音量(0 ~ 1), 按 10% 一档
+                volumeLevel: 0.8,
                 // 节流
                 _lastTick: 0
             }
@@ -191,6 +193,8 @@
         created() {
             this.init()
             this.bgm = new Audio(this.playlist[this.curIndex])
+            // 设置音量
+            this.bgm.volume = this.volumeLevel
             this.bgm.loop = false
             this.bgm.preload = 'metadata'
             this.bgm.addEventListener('ended', this.playNext)
@@ -228,6 +232,14 @@
                 } else {
                     this.playMode = PLAY_MODE.SINGLE
                 }
+                // 读取播放音量
+                const savedVolume = localStorage.getItem('volumeLevel')
+                if (savedVolume !== null) {
+                    const v = Math.round(parseFloat(savedVolume) * 10) / 10   // 规整到 0.1 的倍数
+                    if (!isNaN(v) && v >= 0 && v <= 1) {
+                        this.volumeLevel = v
+                    }
+                }
             },
 
             // 点击歌单切歌
@@ -238,6 +250,8 @@
                     this.duration = 0
                     // TODO bgm: { src: '' } 是对象
                     this.bgm.src = this.playlist[this.curIndex]
+                    // 保持当前音量
+                    this.bgm.volume = this.volumeLevel
                     this.bgm.play().then(() => {
                         this.isPlaying = true
                         console.log('正在播放: ' + this.getSongName(this.playlist[this.curIndex]) + '...')
@@ -263,6 +277,11 @@
                     this.bgm.pause()
                     this.isPlaying = false
                 }
+            },
+
+            // 切上一首
+            playPre() {
+                this.playSong((this.curIndex - 1 + this.playlist.length) % this.playlist.length)
             },
 
             // 切下一首
@@ -297,6 +316,20 @@
                 const modes = [PLAY_MODE.SINGLE, PLAY_MODE.ORDER, PLAY_MODE.RANDOM]
                 this.playMode = modes[(this.playMode + 1) % modes.length]
                 localStorage.setItem('playMode', this.playMode)
+            },
+
+            // 切换音量
+            changeVolume(direction) {
+                if (!this.bgm) return
+                let step = Math.round(this.volumeLevel * 10)   // 当前档位 0~10
+                step += direction > 0 ? 1 : -1                 // 加/减一档
+                step = Math.min(10, Math.max(0, step))         // 钳制在 0~10
+                const newVol = step / 10                       // 换算回 0~1
+                if (newVol === this.volumeLevel) return        // 已在端点则不重复触发
+                this.volumeLevel = newVol
+                this.bgm.volume = newVol
+                localStorage.setItem('volumeLevel', this.bgm.volume)
+                console.log('音量: ' + step * 10 + '%')        // 仅在控制台输出，无 UI 提示
             },
 
             // 进度条相关
@@ -356,18 +389,38 @@
 
             // 键盘事件处理
             handleKeydown(e) {
-                // Ctrl + Alt + S 开始 | 暂停播放
-                if (e.ctrlKey && e.altKey && (e.key === 's' || e.key === 'S')) {
+                // Ctrl + P 开始 | 暂停播放
+                if (e.ctrlKey && (e.key === 'p' || e.key === 'P')) {
                     e.preventDefault()
                     this.toggleMusic()
                 }
-                // Ctrl + Alt + N 切下一首
-                if (e.ctrlKey && e.altKey && (e.key === 'n' || e.key === 'N')) {
+                // Ctrl + '<-' 切上一首
+                if (e.ctrlKey && e.key === 'ArrowLeft') {
                     e.preventDefault()
-                    this.playNext()
+                    this.playPre()
                 }
-                // Ctrl + Alt + M 切播放模式
-                if (e.ctrlKey && e.altKey && (e.key === 'm' || e.key === 'M')) {
+                // Ctrl + '->' 切下一首
+                if (e.ctrlKey && e.key === 'ArrowRight') {
+                    e.preventDefault()
+                    if (this.playMode === PLAY_MODE.SINGLE) {
+                        this.playSong((this.curIndex + 1) % this.playlist.length)
+                    } else {
+                        this.playNext()
+                    }
+                }
+
+                // Ctrl + ↑ 音量 + 10%
+                if (e.ctrlKey && e.key === 'ArrowUp') {
+                    e.preventDefault()
+                    this.changeVolume(1)
+                }
+                // Ctrl + ↓ 音量 - 10%
+                if (e.ctrlKey && e.key === 'ArrowDown') {
+                    e.preventDefault()
+                    this.changeVolume(-1)
+                }
+                // Ctrl + M 切播放模式
+                if (e.ctrlKey && (e.key === 'm' || e.key === 'M')) {
                     e.preventDefault()
                     this.changePlayMode()
                 }
