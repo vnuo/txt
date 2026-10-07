@@ -3,7 +3,7 @@
     position: fixed;
     top: 32px;
     left: 32px;
-    width: 225px;
+    width: 240px;
     height: 87%;
     max-height: calc(100vh - 50px);
     overflow-y: auto;
@@ -22,9 +22,8 @@
     margin-bottom: 10px;
     padding-bottom: 6px;
     border-bottom: 1px solid rgba(157, 110, 51, .2);
-    /* 新增：白色柔光，让文字浮起来 */
     text-shadow: 0 1px 3px rgba(255, 255, 255, .2),
-    0 0 6px rgba(255, 255, 255, 0.3);
+    0 0 6px rgba(255, 255, 255, 0.9);
 }
 
 .playlist-list {
@@ -47,9 +46,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    /* 新增：白色柔光，让文字浮起来 */
     text-shadow: 0 1px 3px rgba(255, 255, 255, .2),
-    0 0 6px rgba(255, 255, 255, 0.3);
+    0 0 6px rgba(255, 255, 255, 0.7);
 }
 
 /* 当前播放的歌曲高亮 */

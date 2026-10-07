@@ -1,8 +1,6 @@
 .title h1 {
     font-size: 56px;
     color: rgb(157, 110, 51);
-
-    /* 新增：白色柔光，让文字浮起来 */
     text-shadow: 0 1px 3px rgba(255, 255, 255, .2),
     0 0 12px rgba(255, 255, 255, 0.9);
     display: flex;
@@ -30,7 +28,6 @@
     width: 100%;
     height: 95%;
     color: rgb(157, 110, 51);
-    /* 新增：白色柔光，让文字浮起来 */
     text-shadow: 0 1px 3px rgba(255, 255, 255, .2),
     0 0 6px rgba(255, 255, 255, 0.9);
     text-align: justify;
@@ -61,7 +58,7 @@
     overflow: visible;
     animation: memo-float 5.5s ease-in-out infinite;
     transform-origin: 50% 60%;
-    vertical-align: middle;   /* 新增：强制 SVG 垂直居中 */
+    vertical-align: middle;   /* 强制 SVG 垂直居中 */
 }
 
 

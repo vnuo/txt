@@ -1,9 +1,3 @@
-@font-face {
-    font-family: 'VaeFont';
-    src: url('../vae.woff2') format('truetype');
-    font-display: block;
-}
-
 body {
     font-family: 'VaeFont', sans-serif;
     background: none;
@@ -13,7 +7,18 @@ body {
 .bg-layer {
     position: fixed;
     inset: 0;
-    background: url('../bg.webp') center/cover no-repeat;
+    background: url('../img/bg.webp') center/cover no-repeat;
     z-index: -1; /* 垫在最底下 */
     pointer-events: none; /* 鼠标穿透, 不影响点击 */
+}
+
+@font-face {
+    font-family: 'VaeFont';
+    src: url('../ttf/vae.woff2') format('truetype');
+    font-display: block;
+}
+
+svg {
+    filter: drop-shadow(0 2px 3px rgba(255, 255, 255, .7))
+    drop-shadow(0 0 12px rgba(255, 255, 255, .9));
 }

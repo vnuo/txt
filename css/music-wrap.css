@@ -60,9 +60,8 @@
     text-align: center;
     white-space: nowrap;
     transition: opacity .3s;
-    /* 新增：白色柔光，让文字浮起来 */
     text-shadow: 0 1px 3px rgba(255, 255, 255, .2),
-    0 0 6px rgba(255, 255, 255, 0.3);
+    0 0 6px rgba(255, 255, 255, 0.7);
 }
 
 
@@ -126,7 +125,7 @@
     width: 10px;
     height: 10px;
     margin-top: -5px;
-    margin-left: -5px; /* 圆心对齐 left */
+    margin-left: -5px;
     border-radius: 50%;
     background: rgb(157, 110, 51);
     box-shadow: 0 0 0 2px rgba(255, 255, 255, .6);
