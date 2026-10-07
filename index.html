@@ -389,17 +389,17 @@
 
             // 键盘事件处理
             handleKeydown(e) {
-                // Ctrl + P 开始 | 暂停播放
+                // Ctrl + 'P' 开始 | 暂停播放
                 if (e.ctrlKey && (e.key === 'p' || e.key === 'P')) {
                     e.preventDefault()
                     this.toggleMusic()
                 }
-                // Ctrl + '<-' 切上一首
+                // Ctrl + '←' 切上一首
                 if (e.ctrlKey && e.key === 'ArrowLeft') {
                     e.preventDefault()
                     this.playPre()
                 }
-                // Ctrl + '->' 切下一首
+                // Ctrl + '→' 切下一首
                 if (e.ctrlKey && e.key === 'ArrowRight') {
                     e.preventDefault()
                     if (this.playMode === PLAY_MODE.SINGLE) {
@@ -408,18 +408,17 @@
                         this.playNext()
                     }
                 }
-
-                // Ctrl + ↑ 音量 + 10%
+                // Ctrl + '↑' 音量 + 10%
                 if (e.ctrlKey && e.key === 'ArrowUp') {
                     e.preventDefault()
                     this.changeVolume(1)
                 }
-                // Ctrl + ↓ 音量 - 10%
+                // Ctrl + '↓' 音量 - 10%
                 if (e.ctrlKey && e.key === 'ArrowDown') {
                     e.preventDefault()
                     this.changeVolume(-1)
                 }
-                // Ctrl + M 切播放模式
+                // Ctrl + 'M' 切播放模式
                 if (e.ctrlKey && (e.key === 'm' || e.key === 'M')) {
                     e.preventDefault()
                     this.changePlayMode()
