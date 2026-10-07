@@ -10,10 +10,11 @@
     <link rel="stylesheet" href="./css/music-wrap.css">
     <script src="./js/http_cdn.jsdelivr.net_npm_vue@2_dist_vue.js"></script>
     <!-- 预加载字体 -->
-    <link rel="preload" href="./vae.woff2" as="font" type="font/ttf" crossorigin>
     <script>
         document.documentElement.style.opacity = '0'
-        setTimeout(() => { document.documentElement.style.opacity = '1' }, 2000)  // 兜底
+        setTimeout(() => {
+            document.documentElement.style.opacity = '1'
+        }, 2000)  // 兜底
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(() => {
                 document.documentElement.style.transition = 'opacity .2s'
@@ -125,6 +126,12 @@
 </body>
 
 <script>
+    const PLAY_MODE = Object.freeze({
+        SINGLE: 0,   // 单曲循环
+        ORDER: 1,    // 顺序播放
+        RANDOM: 2    // 随机播放
+    })
+
     const app = new Vue({
         el: '#app',
         data() {
@@ -145,6 +152,8 @@
                     './bgm/忽略不计.mp3'
                 ],
                 curIndex: 0,
+                // 播放模式
+                playMode: PLAY_MODE.SINGLE,
                 // 进度条
                 currentTime: 0,
                 duration: 0,
@@ -184,12 +193,21 @@
         },
         methods: {
             init() {
+                // 读取备忘录内容
                 this.txt = localStorage.getItem('txt') || ''
+                // 读取上次播放歌曲
                 let savedIndex = Number(localStorage.getItem('curIndex'))
                 if (!Number.isInteger(savedIndex) || savedIndex < 0 || savedIndex >= this.playlist.length) {
                     savedIndex = 0
                 }
                 this.curIndex = savedIndex
+                // 读取播放模式
+                let savedPlayMode = Number(localStorage.getItem('playMode'))
+                if (savedPlayMode === PLAY_MODE.SINGLE || savedPlayMode === PLAY_MODE.ORDER || savedPlayMode === PLAY_MODE.RANDOM) {
+                    this.playMode = savedPlayMode
+                } else {
+                    this.playMode = PLAY_MODE.SINGLE
+                }
             },
 
             // 点击歌单切歌
@@ -229,8 +247,29 @@
             },
             // 切下一首
             playNext() {
-                const nextIndex = (this.curIndex + 1) % this.playlist.length
-                this.playSong(nextIndex)
+                this.playSong(this.getNextIndex())
+            },
+
+            // 计算"下一首"的索引
+            getNextIndex() {
+                // 单曲循环
+                if (this.playMode === PLAY_MODE.SINGLE) {
+                    return this.curIndex
+                }
+                // 顺序播放
+                if (this.playMode === PLAY_MODE.ORDER) {
+                    return (this.curIndex + 1) % this.playlist.length
+                }
+                // 随机播放
+                if (this.playlist.length <= 1) {
+                    return this.curIndex
+                } else {
+                    let newIndex = Math.floor(Math.random() * this.playlist.length)
+                    while (newIndex === this.playMode) {
+                        newIndex = Math.floor(Math.random() * this.playlist.length)
+                    }
+                    return newIndex
+                }
             },
 
             // 进度条相关
@@ -298,6 +337,13 @@
                 if (e.ctrlKey && e.altKey && (e.key === 'n' || e.key === 'N')) {
                     e.preventDefault()
                     this.playNext()
+                }
+                // Ctrl + Alt + M 切播放模式
+                if (e.ctrlKey && e.altKey && (e.key === 'm' || e.key === 'M')) {
+                    e.preventDefault()
+                    const modes = [PLAY_MODE.SINGLE, PLAY_MODE.ORDER, PLAY_MODE.RANDOM]
+                    this.playMode = modes[(this.playMode + 1) % modes.length]
+                    localStorage.setItem('playMode', this.playMode)
                 }
             },
 
