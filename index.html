@@ -80,7 +80,7 @@
                     <path class="ink" d="M2 22 Q6 20 10 22 T18 22"/>
                 </svg>
             </span>
-            备忘录
+            {{title}}
         </h1>
     </div>
     <div class="txt_div">
@@ -145,6 +145,7 @@
         el: '#app',
         data() {
             return {
+                title: '聆 · 记',
                 txt: '',
                 isPlaying: false,
                 bgm: null,
@@ -180,7 +181,7 @@
             playModeIcon() {
                 const map = {
                     [PLAY_MODE.SINGLE]: './img/icon/single.webp',
-                    [PLAY_MODE.ORDER]:  './img/icon/order.webp',
+                    [PLAY_MODE.ORDER]: './img/icon/order.webp',
                     [PLAY_MODE.RANDOM]: './img/icon/random.webp'
                 }
                 // 如果找不到对应图标，给个默认值
