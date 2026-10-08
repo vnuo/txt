@@ -41,9 +41,15 @@
     text-decoration: none;
     max-lines: 6;
     resize: none;
-    overflow: hidden;
+    overflow-y: auto;
+    /* 隐藏滚动条 */
+    scrollbar-width: none;        /* Firefox */
+    -ms-overflow-style: none;     /* IE / Edge */
 }
 
+.txt_input::-webkit-scrollbar {
+    display: none;                /* Chrome / Safari */
+}
 
 /* 图标 */
 .memo-icon {

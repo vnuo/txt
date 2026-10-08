@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="./css/txt.css">
     <link rel="stylesheet" href="./css/music-wrap.css">
     <script src="./js/http_cdn.jsdelivr.net_npm_vue@2_dist_vue.js"></script>
+    <!-- 加载歌单 -->
+    <script src="./js/playlist.js"></script>
     <!-- 预加载字体 -->
     <script>
         document.documentElement.style.opacity = '0'
@@ -31,41 +33,58 @@
     <!-- 左侧: 歌单 -->
     <div class="playlist-wrap">
         <div class="playlist-title">歌单</div>
-        <ul class="playlist-list">
-            <li v-for="(song, index) in playlist"
-                :key="index"
-                :class="{ active: curIndex === index }"
-                @click="playSong(index)">
-                <!-- 当前正在播放: 动态均衡器图标 -->
-                <svg v-if="curIndex === index && isPlaying"
-                     class="li-icon eq-icon" viewBox="0 0 24 24" width="20" height="20"
-                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <line x1="6" y1="10" x2="6" y2="14"/>
-                    <line x1="12" y1="6" x2="12" y2="18"/>
-                    <line x1="18" y1="9" x2="18" y2="15"/>
-                </svg>
-                <!-- 当前但暂停: 音符 -->
-                <svg v-else
-                     class="li-icon" viewBox="0 0 24 24" width="20" height="20"
-                     fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 18V5l12-2v13"/>
-                    <circle cx="6" cy="18" r="3"/>
-                    <circle cx="18" cy="16" r="3"/>
-                </svg>
+        <div class="playlist-scroll">
 
-                <span class="song-text">{{ getSongName(song) }}</span>
+            <ul class="playlist-list">
+                <li v-for="(song, index) in playlist"
+                    :key="index"
+                    :class="{ active: curIndex === index }"
+                    @click="playSong(index)">
+                    <!-- 当前正在播放: 动态均衡器图标 -->
+                    <svg v-if="curIndex === index && isPlaying"
+                         class="li-icon eq-icon" viewBox="0 0 24 24" width="20" height="20"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="6" y1="10" x2="6" y2="14"/>
+                        <line x1="12" y1="6" x2="12" y2="18"/>
+                        <line x1="18" y1="9" x2="18" y2="15"/>
+                    </svg>
+                    <!-- 当前但暂停: 音符 -->
+                    <svg v-else
+                         class="li-icon" viewBox="0 0 24 24" width="20" height="20"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13"/>
+                        <circle cx="6" cy="18" r="3"/>
+                        <circle cx="18" cy="16" r="3"/>
+                    </svg>
 
-                <div v-if="curIndex === index"
-                     style="margin-left: auto; display: flex; align-items: center;">
-                    <!-- @click.stop, 加上了 .stop 修饰符, 这样点击图标切换模式时不会触发外层的 playSong(index) 事件, 防止误切歌 -->
-                    <img :src="playModeIcon" alt=""
-                         style="width: 24px; cursor: pointer; display: block; "
-                         @click.stop="changePlayMode">
-                </div>
+                    <!-- 歌名: 溢出才跑马灯 -->
+                    <span class="song-text"
+                          :class="{ marquee: overflowMap[index] }"
+                          :ref="el => setSongRef(el, index)"
+                          @mouseenter="hoverIndex = index"
+                          @mouseleave="hoverIndex = null">
+                    <template v-if="overflowMap[index] && hoverIndex === index">
+                        <span class="scroll-inner">
+                            {{ getSongName(song) }}&nbsp;&nbsp;&nbsp;{{ getSongName(song) }}
+                        </span>
+                    </template>
+                    <template v-else>
+                        {{ getSongName(song) }}
+                    </template>
+                </span>
 
-            </li>
-        </ul>
+                    <div v-if="curIndex === index"
+                         style="margin-left: auto; display: flex; align-items: center; flex-shrink: 0;">
+                        <!-- @click.stop, 加上了 .stop 修饰符, 这样点击图标切换模式时不会触发外层的 playSong(index) 事件, 防止误切歌 -->
+                        <img :src="playModeIcon" alt=""
+                             style="width: 24px; cursor: pointer; display: block; "
+                             @click.stop="changePlayMode">
+                    </div>
+
+                </li>
+            </ul>
+        </div>
     </div>
 
     <!-- 中间: 备忘录内容 -->
@@ -150,17 +169,7 @@
                 isPlaying: false,
                 bgm: null,
                 // 歌单
-                playlist: [
-                    './bgm/雨夜的心跳.mp3',
-                    './bgm/时光教会我的.mp3',
-                    './bgm/三吋日光.mp3',
-                    './bgm/花开忘忧.mp3',
-                    './bgm/赐我.mp3',
-                    './bgm/不悟.mp3',
-                    './bgm/不坠.mp3',
-                    './bgm/不要慌不要慌.mp3',
-                    './bgm/忽略不计.mp3'
-                ],
+                playlist: PLAYLIST,
                 curIndex: 0,
                 // 播放模式
                 playMode: PLAY_MODE.SINGLE,
@@ -171,7 +180,11 @@
                 // 音量(0 ~ 1), 按 10% 一档
                 volumeLevel: 0.8,
                 // 节流
-                _lastTick: 0
+                _lastTick: 0,
+                // 歌名滚动
+                songRefs: {},      // { index: el }
+                overflowMap: {},   // { index: true/false }
+                hoverIndex: null   // 当前悬停的索引
             }
         },
         computed: {
@@ -210,10 +223,19 @@
             // 注册关闭 or 刷新页面的监听
             window.addEventListener('beforeunload', this.handleBeforeUnload)
         },
+        mounted() {
+            this.$nextTick(this.checkAllOverflow)
+            window.addEventListener('resize', this.checkAllOverflow)
+            // 字体加载完后重测（自定义字体宽度会变）
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(this.checkAllOverflow)
+            }
+        },
         // 移除监听
         beforeDestroy() {
             window.removeEventListener('keydown', this.handleKeydown)
             window.removeEventListener('beforeunload', this.handleBeforeUnload)
+            window.removeEventListener('resize', this.checkAllOverflow)
         },
         methods: {
             init() {
@@ -332,7 +354,22 @@
                 console.log('音量: ' + step * 10 + '%')        // 仅在控制台输出，无 UI 提示
             },
 
-            // 进度条相关
+            // TODO 歌名滚动
+            // 收集每个歌名 DOM
+            setSongRef(el, index) {
+                if (el) this.songRefs[index] = el
+            },
+            // 重新计算所有歌名是否溢出
+            checkAllOverflow() {
+                const map = {}
+                this.playlist.forEach((_, i) => {
+                    const el = this.songRefs[i]
+                    map[i] = el ? el.scrollWidth > el.clientWidth : false
+                })
+                this.overflowMap = map
+            },
+
+            // TODO 进度条相关
             onTimeUpdate() {
                 if (this.isDragging) return
                 // 节流
@@ -342,31 +379,26 @@
                 this._lastTick = now;
                 this.currentTime = this.bgm.currentTime;
             },
-
             onLoadedMeta() {
                 this.duration = this.bgm.duration || 0
             },
-
             formatTime(sec) {
                 if (!sec || !isFinite(sec)) return '00:00'
                 const m = Math.floor(sec / 60)
                 const s = Math.floor(sec % 60)
                 return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
             },
-
             calcPercent(clientX) {
                 const rect = this.$refs.bar.getBoundingClientRect()
                 let p = (clientX - rect.left) / rect.width
                 return Math.max(0, Math.min(1, p))
             },
-
             onBarClick(e) {
                 if (!this.bgm || !this.duration) return
                 const p = this.calcPercent(e.clientX)
                 this.bgm.currentTime = p * this.duration
                 this.currentTime = this.bgm.currentTime
             },
-
             onBarDown(e) {
                 if (!this.bgm || !this.duration) return
                 this.isDragging = true
