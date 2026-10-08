@@ -34,7 +34,6 @@
     <div class="playlist-wrap">
         <div class="playlist-title">歌单</div>
         <div class="playlist-scroll">
-
             <ul class="playlist-list">
                 <li v-for="(song, index) in playlist"
                     :key="index"
@@ -64,15 +63,15 @@
                           :ref="el => setSongRef(el, index)"
                           @mouseenter="hoverIndex = index"
                           @mouseleave="hoverIndex = null">
-                    <template v-if="overflowMap[index] && hoverIndex === index">
-                        <span class="scroll-inner">
-                            {{ getSongName(song) }}&nbsp;&nbsp;&nbsp;{{ getSongName(song) }}
-                        </span>
-                    </template>
-                    <template v-else>
-                        {{ getSongName(song) }}
-                    </template>
-                </span>
+                        <template v-if="overflowMap[index] && hoverIndex === index">
+                            <span class="scroll-inner">
+                                {{ getSongName(song) }}&nbsp;&nbsp;&nbsp;{{ getSongName(song) }}
+                            </span>
+                        </template>
+                        <template v-else>
+                            {{ getSongName(song) }}
+                        </template>
+                    </span>
 
                     <div v-if="curIndex === index"
                          style="margin-left: auto; display: flex; align-items: center; flex-shrink: 0;">
@@ -81,7 +80,6 @@
                              style="width: 24px; cursor: pointer; display: block; "
                              @click.stop="changePlayMode">
                     </div>
-
                 </li>
             </ul>
         </div>
