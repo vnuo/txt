@@ -102,7 +102,7 @@
     </div>
     <div class="txt_div">
         <label>
-            <textarea v-model="txt" class="txt_input"></textarea>
+            <textarea v-model="txt" class="txt_input" @input="changeTXT"></textarea>
         </label>
     </div>
 
@@ -262,6 +262,13 @@
                 }
             },
 
+            // 缓存备忘录内容
+            changeTXT() {
+                // console.log('saveTXT: ' + this.txt)
+                localStorage.setItem('txt', this.txt)
+            },
+
+
             // 点击歌单切歌
             playSong(index) {
                 this.curIndex = index
@@ -275,6 +282,8 @@
                     this.bgm.play().then(() => {
                         this.isPlaying = true
                         console.log('正在播放: ' + this.getSongName(this.playlist[this.curIndex]) + '...')
+                        // 缓存当前播放歌曲索引
+                        localStorage.setItem('curIndex', this.curIndex)
                     }).catch(err => {
                         console.warn('切歌失败: ', err)
                         this.isPlaying = false
